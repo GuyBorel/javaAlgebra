@@ -1,0 +1,59 @@
+package de.uniwue.jpp.javalgebra;
+
+public class StrukturMitZweiVerknuepfungen<T> {
+
+    private Menge<T> menge;
+    private Abbildung<Tupel<T>,T> plus;
+    private Abbildung<Tupel<T>,T> mal;
+    public StrukturMitZweiVerknuepfungen(Menge<T> menge, Abbildung<Tupel<T>,T> plus, Abbildung<Tupel<T>,T> mal) {
+        if (menge.getSize().isEmpty()){
+            throw new IllegalArgumentException("unendliche Menge");
+        }
+
+
+        this.menge = menge;
+        this.plus = plus;
+        this.mal = mal;
+    }
+
+    public T applyPlus(T t1, T t2) {
+        if (!menge.contains(t1) || !menge.contains(t2)){
+            throw new IllegalArgumentException("t1 und t2 nicht in menge");
+        }
+        throw new UnsupportedOperationException();
+    }
+
+    public T applyMal(T t1, T t2) {
+        if (!menge.contains(t1) || !menge.contains(t2)){
+            throw new IllegalArgumentException("t1 und t2 nicht in menge");
+        }
+        throw new UnsupportedOperationException();
+    }
+
+    public boolean isDistributiv() {
+        throw new UnsupportedOperationException();
+    }
+
+    public boolean isRing() {
+        throw new UnsupportedOperationException();
+    }
+
+    public T getNull() {
+        if (!isRing()) {
+            throw new UnsupportedOperationException("die Struktur kein Ring ist");
+        }
+
+        return null;
+    }
+
+    public boolean isKoerper() {
+        throw new UnsupportedOperationException();
+    }
+
+    public T getEins() {
+        if (!isKoerper()) {
+            throw new UnsupportedOperationException();
+        }
+        return null;
+    }
+}

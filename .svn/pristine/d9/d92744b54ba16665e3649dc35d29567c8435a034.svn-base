@@ -1,0 +1,120 @@
+package de.uniwue.jpp.javalgebra;
+
+import de.uniwue.jpp.javalgebra.mengen.RestklassenMenge;
+import de.uniwue.jpp.javalgebra.mengen.TupelMenge;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+public class StrukturMitZweiVerknuepfungen<T> {
+
+    private Menge<T> menge;
+    private Abbildung<Tupel<T>,T> plus;
+    private Abbildung<Tupel<T>,T> mal;
+    public StrukturMitZweiVerknuepfungen(Menge<T> menge, Abbildung<Tupel<T>,T> plus, Abbildung<Tupel<T>,T> mal) {
+        if (menge.getSize().isEmpty()){
+            throw new IllegalArgumentException("unendliche Menge");
+        }
+        if (menge.getElements().anyMatch(n -> !menge.contains(plus.apply(new Tupel <>(n,n))))){
+            throw new IllegalArgumentException("verknuepfung nicht zwei Elemente aus menge");
+        }
+        if (menge.getElements().anyMatch(n -> !menge.contains(mal.apply(new Tupel <>(n,n))))){
+            throw new IllegalArgumentException("verknuepfung nicht zwei Elemente aus menge");
+        }
+        this.menge = menge;
+        this.plus = plus;
+        this.mal = mal;
+    }
+
+    public T applyPlus(T t1, T t2) {
+        if (!menge.contains(t1) || !menge.contains(t2)){
+            throw new IllegalArgumentException("t1 und t2 nicht in menge");
+        }
+        return plus.apply(new Tupel <>(t1,t2));
+    }
+
+    public T applyMal(T t1, T t2) {
+        if (!menge.contains(t1) || !menge.contains(t2)){
+            throw new IllegalArgumentException("t1 und t2 nicht in menge");
+        }
+        return mal.apply(new Tupel <>(t1,t2));
+    }
+
+    public boolean isDistributiv() {
+        for (T t:menge.getElements().collect(Collectors.toList())) {
+            if (!applyMal(t,applyPlus(t,t)).equals(applyPlus(applyMal(t,t),applyMal(t,t)))){
+                return false;
+            }
+
+            if (!applyMal(applyPlus(t,t),t).equals(applyPlus(applyMal(t,t),applyMal(t,t)))){
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean isRing() {
+
+        StrukturMitEinerVerknuepfung<T> strukturMitEinerVerknuepfungPlus = new StrukturMitEinerVerknuepfung<>(menge,plus);
+        StrukturMitEinerVerknuepfung<T> strukturMitEinerVerknuepfungMal = new StrukturMitEinerVerknuepfung<>(menge,mal);
+
+
+        return strukturMitEinerVerknuepfungPlus.isAbelscheGruppe() &&
+                strukturMitEinerVerknuepfungMal.isHalbgruppe() && isDistributiv();
+    }
+
+    public T getNull() {
+        if (!isRing()) {
+            throw new UnsupportedOperationException("die Struktur kein Ring ist");
+        }
+        StrukturMitEinerVerknuepfung<T> strukturMitEinerVerknuepfungPlus = new StrukturMitEinerVerknuepfung<>(menge,plus);
+
+
+
+        return strukturMitEinerVerknuepfungPlus.getNeutralesElement();
+    }
+
+    public boolean isKoerper() {
+
+        try {
+            List <T> listMitNull = menge.getElements().collect(Collectors.toList());
+            List <T> listOhneNull = menge.getElements().collect(Collectors.toList());
+            listOhneNull.remove(getNull());
+
+            StrukturMitEinerVerknuepfung <T> strukturMitEinerVerknuepfungMal = new StrukturMitEinerVerknuepfung <>(menge, mal);
+            if (isRing() && strukturMitEinerVerknuepfungMal.isAbelscheGruppe()){
+                return true;
+            }
+        }catch(Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public T getEins() {
+        if (!isKoerper()) {
+            throw new UnsupportedOperationException();
+        }
+
+        StrukturMitEinerVerknuepfung<T> strukturMitEinerVerknuepfungMal = new StrukturMitEinerVerknuepfung<>(menge,mal);
+
+        return strukturMitEinerVerknuepfungMal.getNeutralesElement() ;
+    }
+
+
+    public static void main(String[] args) {
+        Abbildung <Tupel <Integer>, Integer> f9 = new Abbildung <>(new TupelMenge <>(new RestklassenMenge(3)), new RestklassenMenge(3), t -> (t.getFirst() + t.getSecond()) % 3);
+        Abbildung <Tupel <Integer>, Integer> f10 = new Abbildung <>(new TupelMenge <>(new RestklassenMenge(3)), new RestklassenMenge(3), t -> (t.getFirst() * t.getSecond()) % 3);
+        //StrukturMitZweiVerknuepfung <Integer> value = new StrukturMitZweiVerknuepfung <>(new RestklassenMenge(3), f9);
+
+        StrukturMitZweiVerknuepfungen<Integer> value = new StrukturMitZweiVerknuepfungen <>(new RestklassenMenge(3), f9,f10);
+
+        System.out.println(value.isRing());
+
+        System.out.println(value.getNull());
+
+        System.out.println(value.getEins());
+
+        System.out.println(value.isKoerper());
+    }
+}

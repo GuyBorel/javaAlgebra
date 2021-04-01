@@ -1,0 +1,141 @@
+package de.uniwue.jpp.javalgebra;
+
+
+import de.uniwue.jpp.javalgebra.mengen.EndlicheMenge;
+import de.uniwue.jpp.javalgebra.mengen.RestklassenMenge;
+
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+
+public class Abbildung<T, S> {
+
+    private Menge <T> definitionsmenge;
+    private Menge <S> zielmenge;
+    private Function <T, S> abbVorschrift;
+    HashMap <Menge <T>, Menge <S>> hashMap = new HashMap <>();
+
+    public Abbildung(Menge <T> definitionsmenge, Menge <S> zielmenge, Function <T, S> abbVorschrift) {
+
+
+        if (definitionsmenge.getSize().isEmpty()) {
+            throw new IllegalArgumentException("definitionsmenge Unendliche Menge");
+        }
+        if (zielmenge.getSize().isEmpty()) {
+            throw new IllegalArgumentException("zielMenge undendliche Menge");
+        }
+
+        if (definitionsmenge.getElements().anyMatch(n -> !zielmenge.contains(abbVorschrift.apply(n)))) {
+            throw new IllegalArgumentException("S element ist nicht im zielmenge");
+        }
+        this.definitionsmenge = definitionsmenge;
+        this.zielmenge = zielmenge;
+        this.abbVorschrift = abbVorschrift;
+    }
+
+    public S apply(T t) {
+        if (!definitionsmenge.contains(t)) {
+            throw new IllegalArgumentException("t nicht in definitionsmenge");
+        }
+        return abbVorschrift.apply(t);
+    }
+
+    public Menge <S> getBildVon(Menge <T> m) {
+        List <T> tList = m.getElements().collect(Collectors.toList());
+        Set <S> sList = new HashSet <>();
+
+        for (T t : tList) {
+            if (!definitionsmenge.contains(t)) {
+                throw new IllegalArgumentException("m ist keine Untermenge von definitionsmenge");
+            }
+
+            sList.add(abbVorschrift.apply(t));
+        }
+        System.out.println("1 :" + new EndlicheMenge<>(sList));
+        return new EndlicheMenge <>(sList);
+
+    }
+
+    public Menge <T> getUrbildVon(Menge <S> m) {
+        List <S> tList = m.getElements().collect(Collectors.toList());
+        Set tSet = new HashSet <>();
+
+        Menge<T> value;
+
+        for (S s : tList) {
+            if (!zielmenge.contains(s)) {
+                throw new IllegalArgumentException("m ist keine untermenge von zielMenge");
+            }
+        }
+
+
+        tSet.add(m.getElements().sorted().collect(Collectors.toList()));
+        System.out.println("2 :" + new EndlicheMenge<>(tSet));
+        return new EndlicheMenge <>(tSet);
+    }
+
+    public boolean isInjektiv() {
+        List tList = new ArrayList();
+        Set  tSet = new HashSet <>();
+
+
+        definitionsmenge.getElements().forEach(s -> tList.add(abbVorschrift.apply(s)));
+
+        definitionsmenge.getElements().forEach(s -> tSet.add(abbVorschrift.apply(s)));
+
+        return tList.size() == tSet.size();
+    }
+
+    public boolean isSurjektiv() {
+        List tList = new ArrayList();
+        Set  tSet = new HashSet <>();
+
+        definitionsmenge.getElements().forEach(s -> tSet.add(abbVorschrift.apply(s)));
+
+        zielmenge.getElements().forEach(tList::add);
+
+        return tList.size() <= tSet.size();
+    }
+
+    public boolean isBijektiv() {
+        return isInjektiv() && isSurjektiv();
+    }
+
+    public Abbildung <S, T> getUmkehrabbildung() {
+
+        Abbildung<S, T> value = null;
+
+        if (!isBijektiv()) {
+            throw new UnsupportedOperationException("Abbildung nicht bijektiv");
+        }
+        List <T> listT = definitionsmenge.getElements().collect(Collectors.toList());
+        for (T t:listT) {
+
+            value = new Abbildung <S,T>(zielmenge,definitionsmenge,(Function<S, T>) abbVorschrift.apply(t));
+        }
+        return value;
+    }
+
+    public static void main(String[] args) {
+
+        //Abbildung<Integer,Integer> test = new Abbildung<>(new RestklassenMenge(5), i -> (i+1)%5, new RestklassenMenge(5), i -> (i+1)%5);
+
+        //Relation <String> testString = new Relation <>(() -> Stream.of("oh", "hello", "there"), (o, o2) -> o.equals(o2));
+        //System.out.println(testString.getAequivalenzklassen());
+
+        //System.out.println(testString.getElementsInOrder());
+        //System.out.println(testString.getElements().collect(Collectors.toList()));
+
+
+        //Abbildung<Integer, Integer> test = new Abbildung <>(new RestklassenMenge(5), i -> i%2
+        // , new RestklassenMenge(5), (integer3, integer4) -> (integer3+1)%5 == integer4);
+
+        //  Relation <Integer> test = new Relation <>(new RestklassenMenge(3), (integer, integer2) -> integer <= (integer2));
+
+
+        //System.out.println(test.getElements().collect(Collectors.toList()));
+
+
+    }
+}

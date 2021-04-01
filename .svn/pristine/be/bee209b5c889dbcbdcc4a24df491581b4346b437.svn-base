@@ -1,0 +1,146 @@
+package de.uniwue.jpp.javalgebra;
+
+import de.uniwue.jpp.javalgebra.mengen.RestklassenMenge;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+public class StrukturMitEinerVerknuepfung<T> {
+
+    private Menge <T> menge;
+    private Abbildung <Tupel <T>, T> verknuepfung;
+    private T neutralElement = null;
+
+    public StrukturMitEinerVerknuepfung(Menge <T> menge, Abbildung <Tupel <T>, T> verknuepfung) {
+        if (menge.getSize().isEmpty()) {
+            throw new IllegalArgumentException("unendliche Menge");
+        }
+        if (menge.getElements().anyMatch(n -> !menge.contains(verknuepfung.apply(new Tupel <>(n, n))))) {
+            throw new IllegalArgumentException("verknuepfung nicht zwei Elemente aus menge");
+        }
+        this.menge = menge;
+        this.verknuepfung = verknuepfung;
+    }
+
+    public T apply(T t1, T t2) {
+        if (!menge.contains(t1) || !menge.contains(t2)) {
+            throw new IllegalArgumentException("t1 oder t2 nicht in menge");
+        }
+        return verknuepfung.apply(new Tupel <>(t1, t2));
+    }
+
+    public boolean isHalbgruppe() {
+        List <T> tList = menge.getElements().collect(Collectors.toList());
+
+        for (int i = 0; i < menge.getSize().get(); i++) {
+            for (int j = i; j < menge.getSize().get(); j++) {
+                for (int k = j; k < menge.getSize().get(); k++) {
+                    T a1 = tList.get(i);
+                    T a2 = tList.get(j);
+                    T a3 = tList.get(k);
+                    if (!apply(a1, apply(a2, a3)).equals(apply(apply(a1, a2), a3))) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    public boolean isMonoid() {
+        List <T> tList = menge.getElements().collect(Collectors.toList());
+        if (!isHalbgruppe()) {
+            return false;
+        }
+        T elem = null;
+        boolean notNeutral = false, exists = false;
+        for (int i = 0; i < menge.getSize().get(); i++) {
+            T e = tList.get(i);
+            for (int j = i; j < menge.getSize().get(); j++) {
+                T a2 = tList.get(j);
+                if (!((apply(e, a2).equals(apply(a2, e))) && (apply(a2, e).equals(a2)) && (apply(e, a2).equals(a2)))) {
+                    notNeutral = true;
+                    break;
+                }
+            }
+            if(!notNeutral && exists){
+                exists = false;
+                break;
+            }
+            if(!notNeutral && !e.equals(elem)){
+                exists = true;
+                neutralElement = e;
+            }
+            notNeutral = false;
+        }
+        return exists;
+    }
+
+    public T getNeutralesElement() {
+        List <T> listValue = menge.getElements().collect(Collectors.toList());
+        if (!isMonoid()) {
+            throw new UnsupportedOperationException("Struktur kein Monoid");
+        } else {
+            return neutralElement;
+        }
+        //return apply(listValue.get(1), listValue.get(1));
+    }
+
+    public boolean isGruppe() {
+        List <T> tList = menge.getElements().collect(Collectors.toList());
+        if (menge.getSize().isPresent()) {
+            for (int i = 0; i < menge.getSize().get(); i++) {
+                for (int j = i; j < menge.getSize().get(); j++) {
+                    for (int k = j; k < menge.getSize().get(); k++) {
+                        T a = tList.get(i);
+                        T b = tList.get(j);
+                        T e = tList.get(k);
+                        if (!apply(a, b).equals(apply(b, a)) && !apply(a, b).equals(apply(e, e)) && !apply(b, a).equals(apply(e, e))) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean isKommutativ() {
+        List <T> tList = menge.getElements().collect(Collectors.toList());
+
+        for (int i = 0; i < menge.getSize().get(); i++) {
+            for (int j = i; j < menge.getSize().get(); j++) {
+                T a1 = tList.get(i);
+                T a2 = tList.get(j);
+                if (!apply(a1, a2).equals(apply(a2, a1))) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    public boolean isAbelscheGruppe() {
+        return isGruppe() && isKommutativ();
+    }
+
+    public static void main(String[] args) {
+
+        //Abbildung<Tupel<Integer>,Integer> f8 = new Abbildung <>(new RestklassenMenge(4), new RestklassenMenge(4), (x,y) -> (x+y))
+        //StrukturMitEinerVerknuepfung<Integer> value = new StrukturMitEinerVerknuepfung <>(new RestklassenMenge(5),(x,y) -> ()%3 );
+        Relation <Integer> test = new Relation <>(new RestklassenMenge(4), (integer, integer2) -> integer >= (integer2));
+
+        System.out.println();
+
+
+        System.out.println(test.getElementsInOrder());
+
+        System.out.println(test.isAntisymmetrisch());
+
+        System.out.println(test.isTransitiv());
+
+        //System.out.println(test.getAequivalenzklassen());
+
+        System.out.println(test.getElements().collect(Collectors.toList()));
+    }
+}

@@ -1,0 +1,265 @@
+package de.uniwue.jpp.javalgebra;
+
+import de.uniwue.jpp.javalgebra.mengen.RestklassenMenge;
+
+import java.util.*;
+import java.util.function.BiFunction;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+public class Relation<T> implements Menge <Tupel <T>> {
+
+    private Menge <T> menge;
+    private BiFunction <T, T, Boolean> isInRelation;
+    private Stream <Tupel <T>> tupelStream;
+    private List <Tupel <T>> tupelList;
+    private List <Tupel <T>> tupelTotal;
+    private boolean isTrue;
+
+    public Relation(Menge <T> menge, BiFunction <T, T, Boolean> isInRelation) {
+        if (menge.getSize().isEmpty()) {
+            throw new IllegalArgumentException("unendliche Menge");
+        }
+        this.menge = menge;
+        this.isInRelation = isInRelation;
+
+
+        tupelList = new LinkedList <>();
+        tupelTotal = new ArrayList <>();
+        List <T> listValue = menge.getElements().collect(Collectors.toList());
+
+        for (int i = 0; i < menge.getSize().get(); i++) {
+            for (int j = 0; j < menge.getSize().get(); j++) {
+                tupelTotal.add(new Tupel <>(listValue.get(i), listValue.get(j)));
+                if (i == 0 && j == 1) {
+                    isTrue = isInRelation.apply(listValue.get(i), listValue.get(j));
+                }
+                if (isInRelation.apply(listValue.get(i), listValue.get(j))) {
+                    tupelList.add(new Tupel <>(listValue.get(i), listValue.get(j)));
+                }
+            }
+        }
+
+        tupelStream = tupelList.stream();
+    }
+
+    @Override
+    public Stream <Tupel <T>> getElements() {
+        return tupelList.stream();
+    }
+
+
+    @Override
+    public boolean contains(Tupel <T> element) {
+
+        return isInRelation.apply(element.getFirst(), element.getSecond());
+
+    }
+
+    public boolean isReflexiv() {
+        List <T> listValue = menge.getElements().collect(Collectors.toList());
+        for (T t : listValue) {
+            if (!isInRelation.apply(t, t)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean isIrreflexiv() {
+
+        List <T> listValue = menge.getElements().collect(Collectors.toList());
+        for (T t : listValue) {
+            if (isInRelation.apply(t, t)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean isSymmetrisch() {
+
+        for (Tupel <T> list : tupelList) {
+            if (!isInRelation.apply(list.getSecond(), list.getFirst())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean isAsymmetrisch() {
+        for (Tupel <T> list : tupelList) {
+            if (isInRelation.apply(list.getSecond(), list.getFirst())) {
+                return false;
+            }
+
+            if (list.getFirst().equals(list.getSecond())) {
+                return false;
+            }
+        }
+        return true;
+
+    }
+
+    public boolean isAntisymmetrisch() {
+        for (Tupel <T> t : tupelList) {
+
+            if (isInRelation.apply(t.getFirst(), t.getSecond())) {
+                if (isInRelation.apply(t.getSecond(), t.getFirst())) {
+                    if (!t.getFirst().equals(t.getSecond())) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    public boolean isTransitiv() {
+
+        for (int i = 0; i < tupelList.size(); i++) {
+            T a1 = tupelList.get(i).getFirst();
+            T a2 = tupelList.get(i).getSecond();
+            for (int j = 0; isInRelation.apply(a1, a2) && j < tupelList.size(); j++) {
+                T b1 = tupelList.get(j).getFirst();
+                T b2 = tupelList.get(j).getSecond();
+                if (a2.equals(b1) && isInRelation.apply(b1, b2) && !isInRelation.apply(a1, b2)) { //Ici tu vérifies juste 0 => 1
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    public boolean isTotal() {
+
+        for (Tupel <T> t : tupelTotal) {
+            T a = t.getFirst();
+            T b = t.getSecond();
+            if (!isInRelation.apply(a, b) && !isInRelation.apply(b, a)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean isAequivalenzrelation() {
+        return isReflexiv() & isSymmetrisch() & isTransitiv();
+
+    }
+
+    public Set <Set <T>> getAequivalenzklassen() {
+        List <T> listValue = menge.getElements().collect(Collectors.toList());
+
+        boolean test = true;
+
+
+
+
+        Set <Set <T>> value = new HashSet <>();
+       // System.out.println("value Set 1 " + tSet);
+
+        if (!isAequivalenzrelation()) {
+            throw new UnsupportedOperationException();
+        } else {
+            for (int i = 0; i < menge.getSize().get(); i++) {
+                Set <T> tSet = new HashSet <>();
+
+                for (int j = 0; j < menge.getSize().get(); j++) {
+                    if (isInRelation.apply(listValue.get(i), listValue.get(j)) && isInRelation.apply(listValue.get(j), listValue.get(i))){
+                        tSet.add(listValue.get(i));
+                        tSet.add(listValue.get(j));
+                    }
+
+                }
+                value.add(tSet);
+            }
+            //System.out.println(tSet.size());
+
+        }
+        System.out.println("value set 2 " + value);
+
+        return value;
+    }
+
+    public boolean isTotalordnung() {
+
+        return isReflexiv() & isAntisymmetrisch() & isTransitiv() & isTotal();
+
+    }
+
+    public List <T> getElementsInOrder() {
+        List <T> ElementsInOrder = null;
+        List <T> listValue = menge.getElements().collect(Collectors.toList());
+
+        if (!isTotalordnung()) {
+            throw new UnsupportedOperationException("Eine Relation ist genau dann eine Totalordnung");
+        } else {
+
+            for (int i = 0; i < listValue.size(); i++) {
+                ElementsInOrder = new ArrayList <>(listValue);
+            }
+
+            System.out.println("Element1 : " + ElementsInOrder);
+            //Collections.sort(ElementsInOrder.g);
+
+            /*for (int i = 0; i < menge.getSize().get(); i++) {
+                for (int j = 0; j < menge.getSize().get(); j++) {
+                    if (isInRelation.apply(listValue.get(i), listValue.get(j)) && isInRelation.apply(listValue.get(j), listValue.get(i))){
+                        ElementsInOrder = new Array*List <>(listValue);
+                    }else {
+                        Collections.reverse(listValue);
+                        System.out.println("reversed" + listValue);
+                        ElementsInOrder = new ArrayList <>(listValue);
+                    }
+
+                }
+            }
+          /*  if (isTrue) {
+                System.out.println("value:" + listValue);
+                ElementsInOrder = new ArrayList <>(listValue);
+            } else {
+                Collections.reverse(listValue);
+                System.out.println("reversed" + listValue);
+                ElementsInOrder = new ArrayList <>(listValue);
+            }*/
+        }
+
+        return ElementsInOrder;
+    }
+
+    public static void main(String[] args) {
+
+        Relation <String> testString = new Relation <>(() -> Stream.of("oh", "Hello", "there"), String::equals);
+        //System.out.println(testString.getAequivalenzklassen());
+        //System.out.println(testString.getElementsInOrder());
+
+        System.out.println(testString.isTransitiv());
+        System.out.println(testString.isReflexiv());
+        System.out.println(testString.isAntisymmetrisch());
+        System.out.println(testString.isTotal());
+
+        // Stream.of("oh", "hello", "thereby") -> ["thereby", "hello", "oh"]   (korrekt)
+
+        // Stream.of("hello", "thereby", "oh") -> ["thereby", "hello", "oh"]       (korrekt)
+
+        //Stream.of("thereby", "oh", "hello") -> ["oh", "hello", "thereby"]
+
+
+        Relation <Integer> test = new Relation <>(new RestklassenMenge(3), (integer, integer2) -> integer <= (integer2));
+
+
+        System.out.println(test.getElementsInOrder());
+
+        System.out.println(test.isAntisymmetrisch());
+
+        System.out.println(test.isTransitiv());
+
+        //System.out.println(test.getAequivalenzklassen());
+
+        System.out.println(test.getElements().collect(Collectors.toList()));
+
+
+    }
+
+}

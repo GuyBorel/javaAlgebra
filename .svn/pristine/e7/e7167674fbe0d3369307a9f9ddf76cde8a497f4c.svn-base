@@ -1,0 +1,50 @@
+package de.uniwue.jpp.javalgebra;
+
+public class StrukturMitEinerVerknuepfung<T> {
+
+    private Menge<T> menge;
+    private Abbildung<Tupel<T>,T> verknuepfung;
+    public StrukturMitEinerVerknuepfung(Menge<T> menge, Abbildung<Tupel<T>,T> verknuepfung) {
+        if (menge.getSize().isEmpty()){
+            throw new IllegalArgumentException("unendliche Menge");
+        }
+
+
+        this.menge = menge;
+        this.verknuepfung = verknuepfung;
+    }
+
+    public T apply(T t1, T t2) {
+        if (!menge.contains(t1) || !menge.contains(t2)){
+            throw new IllegalArgumentException("t1 oder t2 nicht in menge");
+        }
+        throw new UnsupportedOperationException();
+    }
+
+    public boolean isHalbgruppe() {
+        throw new UnsupportedOperationException();
+    }
+
+    public boolean isMonoid() {
+        throw new UnsupportedOperationException();
+    }
+
+    public T getNeutralesElement() {
+        if (!isMonoid()){
+            throw new UnsupportedOperationException("Struktur kein Monoid");
+        }
+        return null;
+    }
+
+    public boolean isGruppe() {
+        throw new UnsupportedOperationException();
+    }
+
+    public boolean isKommutativ() {
+        throw new UnsupportedOperationException();
+    }
+
+    public boolean isAbelscheGruppe() {
+        throw new UnsupportedOperationException();
+    }
+}

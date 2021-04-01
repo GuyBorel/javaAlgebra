@@ -1,0 +1,101 @@
+package de.uniwue.jpp.javalgebra;
+
+import de.uniwue.jpp.javalgebra.mengen.RestklassenMenge;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+public class Abbildung<T,S> {
+
+    private Menge<T> definitionsmenge;
+    private Menge<S> zielmenge;
+    private Function<T,S> abbVorschrift;
+    HashMap<Menge<T>,Menge<S>> hashMap = new HashMap <>();
+    public Abbildung(Menge<T> definitionsmenge, Menge<S> zielmenge, Function<T,S> abbVorschrift) {
+
+        this.definitionsmenge = definitionsmenge;
+        this.zielmenge = zielmenge;
+        this.abbVorschrift = abbVorschrift;
+        if (definitionsmenge.getSize().isEmpty()){
+            throw new IllegalArgumentException("definitionsmenge Unendliche Menge");
+        }
+        if (zielmenge.getSize().isEmpty()){
+            throw new IllegalArgumentException("zielMenge undendliche Menge");
+        }
+
+    }
+
+    public S apply(T t) {
+        if (!definitionsmenge.contains(t)){
+            throw new IllegalArgumentException("t nicht in definitionsmenge");
+        }
+         return abbVorschrift.apply(t);
+    }
+
+    public Menge<S> getBildVon(Menge<T> m) {
+        List<T> tList = m.getElements().collect(Collectors.toList());
+        Menge<S> value;
+        for (int i = 0; i < tList.size(); i++) {
+            if (!definitionsmenge.contains(tList.get(i))){
+                throw new IllegalArgumentException("m ist keine Untermenge von definitionsmenge");
+            }
+
+        }
+        /*if (m.getElements().collect(Collectors.toList()).contains(definitionsmenge)){
+
+        }*/
+
+        throw new UnsupportedOperationException();
+    }
+
+    public Menge<T> getUrbildVon(Menge<S> m) {
+        throw new UnsupportedOperationException();
+    }
+
+    public boolean isInjektiv() {
+
+        if (zielmenge == definitionsmenge){
+            return true;
+        }
+
+        return zielmenge.isEmpty();
+    }
+
+    public boolean isSurjektiv() {
+        throw new UnsupportedOperationException();
+    }
+
+    public boolean isBijektiv() {
+        return isInjektiv() && isSurjektiv();
+    }
+
+    public Abbildung<S, T> getUmkehrabbildung() {
+        Abbildung<T,S> value;
+
+        if (!isBijektiv()) {
+            throw new UnsupportedOperationException();
+        }
+        return null;
+    }
+
+    public static void main(String[] args) {
+
+        //Relation <String> testString = new Relation <>(() -> Stream.of("oh", "hello", "there"), (o, o2) -> o.equals(o2));
+        //System.out.println(testString.getAequivalenzklassen());
+
+        //System.out.println(testString.getElementsInOrder());
+        //System.out.println(testString.getElements().collect(Collectors.toList()));
+
+
+   /*     Abbildung<Integer, Integer> test = new Relation <>(new RestklassenMenge(5), (integer, integer2) -> (integer+1)%5 == integer2
+        , new RestklassenMenge(5), (integer3, integer4) -> (integer3+1)%5 == integer4);
+        System.out.println(test.getElementsInOrder());
+
+        System.out.println(test.getElements().collect(Collectors.toList()));*/
+
+
+    }
+}

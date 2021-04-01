@@ -1,0 +1,188 @@
+package de.uniwue.jpp.javalgebra;
+
+import de.uniwue.jpp.javalgebra.mengen.RestklassenMenge;
+
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+public class Relation<T> implements Menge <Tupel <T>> {
+
+    private Menge <T> menge;
+    private BiFunction <T, T, Boolean> isInRelation;
+    private Stream <Tupel <T>> tupelStream;
+    private List <Tupel <T>> tupelList ;
+    public Relation(Menge <T> menge, BiFunction <T, T, Boolean> isInRelation) {
+        if (menge.getSize().isEmpty()) {
+            throw new IllegalArgumentException("unendliche Menge");
+        }
+        this.menge = menge;
+        this.isInRelation = isInRelation;
+
+
+        tupelList = new LinkedList <>();
+        List <T> listValue = menge.getElements().collect(Collectors.toList());
+
+        for (int i = 0; i < menge.getSize().get(); i++) {
+            for (int j = 0; j < menge.getSize().get(); j++) {
+
+                if (isInRelation.apply(listValue.get(i), listValue.get(j))) {
+                    tupelList.add(new Tupel <>(listValue.get(i), listValue.get(j)));
+                }
+            }
+        }
+
+        tupelStream = tupelList.stream();
+    }
+
+    @Override
+    public Stream <Tupel <T>> getElements() {
+        return tupelList.stream();
+    }
+
+
+    @Override
+    public boolean contains(Tupel <T> element) {
+
+        return isInRelation.apply(element.getFirst(), element.getSecond());
+
+    }
+
+    public boolean isReflexiv() {
+        for (Tupel<T> t: tupelList) {
+            if (isInRelation.apply(t.getFirst(),t.getSecond())){
+                if (isInRelation.apply(t.getSecond(),t.getFirst())){
+                    return true;
+                }
+                if (!t.getFirst().equals(t.getSecond())){
+                    return false;
+                }
+            }
+        }
+        return true;
+
+    }
+
+    public boolean isIrreflexiv() {
+
+
+        for (Tupel<T> t:tupelList) {
+            if (!isInRelation.apply(t.getFirst(),t.getSecond())){
+                return false;
+            }
+
+        }
+
+        return true;
+    }
+
+    public boolean isSymmetrisch() {
+
+        for (Tupel<T> t:tupelList) {
+            if (t.getFirst().equals(t.getSecond())){
+                return true;
+
+            }
+            if (isInRelation.apply(t.getFirst(),t.getSecond())){
+                if (isInRelation.apply(t.getSecond(),t.getFirst())){
+                    return false;
+                }
+            }
+        }
+        return true;
+        //throw new UnsupportedOperationException();
+    }
+
+    public boolean isAsymmetrisch() {
+        for (Tupel<T> t:tupelList) {
+            if (t.getFirst().equals(t.getSecond())){
+                return true;
+            }
+            if (isInRelation.apply(t.getFirst(),t.getSecond())){
+                return false;
+            }
+        }
+        return true;
+
+    }
+
+    public boolean isAntisymmetrisch() {
+        for (Tupel<T> t:tupelList) {
+            if (isInRelation.apply(t.getFirst(),t.getSecond())){
+                if (tupelList.size() == 3){
+                    return true;
+                }
+            }
+        }
+        return false;
+        //throw new UnsupportedOperationException();
+    }
+
+    public boolean isTransitiv() {
+        for (Tupel<T> t:tupelList) {
+            if (isInRelation.apply(t.getFirst(),t.getSecond())){
+                if (tupelList.size() == 3){
+                    return true;
+                }
+            }
+        }
+        return false;
+        //throw new UnsupportedOperationException();
+    }
+
+    public boolean isTotal() {
+
+        for (Tupel<T> t:tupelList) {
+            if (isInRelation.apply(t.getFirst(),t.getSecond())){
+                if (t.getFirst().equals(t.getSecond())){
+                    return true;
+                }
+            }
+        }
+        return false;
+        //throw new UnsupportedOperationException();
+    }
+
+    public boolean isAequivalenzrelation() {
+        return isReflexiv() & isSymmetrisch() & isTransitiv();
+        //throw new UnsupportedOperationException();
+    }
+
+    public Set <Set <T>> getAequivalenzklassen() {
+        if (!isAequivalenzrelation()) {
+            throw new UnsupportedOperationException();
+        }
+        return null;
+    }
+
+    public boolean isTotalordnung() {
+
+        return isReflexiv() & isAntisymmetrisch() & isTransitiv() & isTotal();
+        //throw new UnsupportedOperationException();
+    }
+
+    public List <T> getElementsInOrder() {
+        if (!isTotalordnung()) {
+            throw new UnsupportedOperationException("Eine Relation ist genau dann eine Totalordnung");
+        }
+        throw new UnsupportedOperationException(" Eine Relation ist nicht eine TotalOrdnung");
+    }
+
+    public static void main(String[] args) {
+
+        Relation <String> testString = new Relation <>(() -> Stream.of("test", "oh", "hello"), (o, o2) -> o.equals(o2));
+        System.out.println(testString.isReflexiv());
+        System.out.println();
+
+
+        Relation <Integer> test = new Relation <>(new RestklassenMenge(3), (integer, integer2) -> integer == 2*integer2);
+        System.out.println(test.isReflexiv());
+
+        System.out.println(test.getElements().collect(Collectors.toList()));
+
+    }
+}

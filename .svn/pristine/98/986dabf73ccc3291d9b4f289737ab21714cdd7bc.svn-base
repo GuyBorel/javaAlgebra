@@ -1,0 +1,242 @@
+package de.uniwue.jpp.javalgebra;
+
+import de.uniwue.jpp.javalgebra.mengen.RestklassenMenge;
+
+import java.util.*;
+import java.util.function.BiFunction;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+public class Relation<T> implements Menge <Tupel <T>> {
+
+    private Menge <T> menge;
+    private BiFunction <T, T, Boolean> isInRelation;
+    private Stream <Tupel <T>> tupelStream;
+    private List <Tupel <T>> tupelList;
+    private List <Tupel <T>> tupelTotal;
+    private boolean isTrue;
+
+    public Relation(Menge <T> menge, BiFunction <T, T, Boolean> isInRelation) {
+        if (menge.getSize().isEmpty()) {
+            throw new IllegalArgumentException("unendliche Menge");
+        }
+        this.menge = menge;
+        this.isInRelation = isInRelation;
+
+
+        tupelList = new LinkedList <>();
+        tupelTotal = new ArrayList <>();
+        List <T> listValue = menge.getElements().collect(Collectors.toList());
+
+        for (int i = 0; i < menge.getSize().get(); i++) {
+            for (int j = 0; j < menge.getSize().get(); j++) {
+                tupelTotal.add(new Tupel <>(listValue.get(i), listValue.get(j)));
+                if (i == 0 && j == 1) {
+                    isTrue = isInRelation.apply(listValue.get(i), listValue.get(j));
+                }
+                if (isInRelation.apply(listValue.get(i), listValue.get(j))) {
+                    tupelList.add(new Tupel <>(listValue.get(i), listValue.get(j)));
+                }
+            }
+        }
+
+        tupelStream = tupelList.stream();
+    }
+
+    @Override
+    public Stream <Tupel <T>> getElements() {
+        return tupelList.stream();
+    }
+
+
+    @Override
+    public boolean contains(Tupel <T> element) {
+
+        return isInRelation.apply(element.getFirst(), element.getSecond());
+
+    }
+
+    public boolean isReflexiv() {
+        List <T> listValue = menge.getElements().collect(Collectors.toList());
+        for (T t : listValue) {
+            if (!isInRelation.apply(t, t)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean isIrreflexiv() {
+
+        List <T> listValue = menge.getElements().collect(Collectors.toList());
+        for (T t : listValue) {
+            if (isInRelation.apply(t, t)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean isSymmetrisch() {
+
+        for (Tupel <T> list : tupelList) {
+            if (!isInRelation.apply(list.getSecond(), list.getFirst())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean isAsymmetrisch() {
+        for (Tupel <T> list : tupelList) {
+            if (isInRelation.apply(list.getSecond(), list.getFirst())) {
+                return false;
+            }
+
+            if (list.getFirst().equals(list.getSecond())) {
+                return false;
+            }
+        }
+        return true;
+
+    }
+
+    public boolean isAntisymmetrisch() {
+        for (Tupel <T> t : tupelList) {
+
+            if (isInRelation.apply(t.getFirst(), t.getSecond())) {
+                if (isInRelation.apply(t.getSecond(), t.getFirst())) {
+                    if (!t.getFirst().equals(t.getSecond())) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    public boolean isTransitiv() {
+
+        for (int i = 0; i < tupelList.size(); i++) {
+            T a1 = tupelList.get(i).getFirst();
+            T a2 = tupelList.get(i).getSecond();
+            for (int j = 0; isInRelation.apply(a1, a2) && j < tupelList.size(); j++) {
+                T b1 = tupelList.get(j).getFirst();
+                T b2 = tupelList.get(j).getSecond();
+                if (a2.equals(b1) && isInRelation.apply(b1, b2) && !isInRelation.apply(a1, b2)) { //Ici tu vérifies juste 0 => 1
+                    return false;
+                }
+            }
+
+        }
+
+        return true;
+    }
+
+    public boolean isTotal() {
+
+        for (Tupel <T> t : tupelTotal) {
+            T a = t.getFirst();
+            T b = t.getSecond();
+            if (!isInRelation.apply(a, b) && !isInRelation.apply(b, a)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean isAequivalenzrelation() {
+        return isReflexiv() & isSymmetrisch() & isTransitiv();
+
+    }
+
+    public Set <Set <T>> getAequivalenzklassen() {
+
+        //List <T> listValue = menge.getElements().collect(Collectors.toList());
+        Set <T> tSet = menge.getElements().collect(Collectors.toSet());
+
+        Set <Set <T>> value = new HashSet <>();
+        System.out.println("value Set 1 " + tSet);
+
+
+        if (!isAequivalenzrelation()) {
+            throw new UnsupportedOperationException();
+        } else {
+            for (Tupel <T> t : tupelTotal) {
+                T a = t.getFirst();
+                T b = t.getSecond();
+                if (isInRelation.apply(a, b) && isInRelation.apply(b, a)) {
+                    value.add(tSet);
+                }
+            }
+        }
+        System.out.println("value set 2 " + value);
+
+        return value;
+    }
+
+    public boolean isTotalordnung() {
+
+        return isReflexiv() & isAntisymmetrisch() & isTransitiv() & isTotal();
+
+    }
+
+    public List <T> getElementsInOrder() {
+        List <T> ElementsInOrder = new ArrayList <>();
+        List <T> listValue = menge.getElements().collect(Collectors.toList());
+        //List <T> listvalueReversed = menge.getElements().collect((Collectors.toList()));
+        if (!isTotalordnung()) {
+            throw new UnsupportedOperationException("Eine Relation ist genau dann eine Totalordnung");
+        } else {
+            //BiFunction <Integer, Integer, Boolean> testValue = (a, b) -> a <= b;
+            //BiFunction test = isInRelation.andThen( i -> i & true);
+
+
+            if (isTrue) {
+                ElementsInOrder = new ArrayList <>(listValue);
+
+            } else {
+                Collections.reverse(listValue);
+                System.out.println("reversed" + listValue);
+                ElementsInOrder = new ArrayList <>(listValue);
+
+
+            }
+
+
+        }
+
+        return ElementsInOrder;
+    }
+
+    public static void main(String[] args) {
+
+        Relation <String> testString = new Relation <>(() -> Stream.of("oh", "hello", "there"), (o, o2) -> o.equals(o2));
+        //System.out.println(testString.getElementsInOrder());
+
+        System.out.println(testString.isTransitiv());
+        System.out.println(testString.isReflexiv());
+        System.out.println(testString.isAntisymmetrisch());
+        System.out.println(testString.isTotal());
+
+        //System.out.println(testString.getElementsInOrder());
+        //System.out.println(testString.getElements().collect(Collectors.toList()));
+
+
+        Relation <Integer> test = new Relation <>(new RestklassenMenge(3), (integer, integer2) -> integer >= (integer2));
+
+
+        System.out.println(test.getElementsInOrder());
+
+        System.out.println(test.isAntisymmetrisch());
+
+        System.out.println(test.isTransitiv());
+
+        System.out.println();
+
+        System.out.println(test.getElements().collect(Collectors.toList()));
+
+
+    }
+
+}

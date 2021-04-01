@@ -1,0 +1,28 @@
+package de.uniwue.jpp.javalgebra.mengen;
+
+import de.uniwue.jpp.javalgebra.Menge;
+
+import java.util.Optional;
+import java.util.stream.Stream;
+
+public class RestklassenMenge implements Menge<Integer> {
+
+    public RestklassenMenge(int mod) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Stream<Integer> getElements() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean contains(Integer element) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Optional<Integer> getSize() {
+        throw new UnsupportedOperationException();
+    }
+}
