@@ -1,6 +1,6 @@
 package de.uniwue.jpp.javalgebra;
 
-public class Tupel<T> {  //Richtig
+public class Tupel<T> {  
 
     private T first,  second;
     public Tupel(T first, T second) {
